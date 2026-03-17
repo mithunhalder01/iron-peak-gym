@@ -7,7 +7,8 @@ import { cn } from '../lib/cn'
 import { Container } from './Container'
 import { LinkButton } from './LinkButton'
 
-const ANNOUNCE_KEY = 'ironpeak:announceDismissed:v1'
+const ANNOUNCE_KEY = 'ironpeak:announceDismissed:session:v1'
+const ANNOUNCE_SCROLL_HIDE_Y = 12
 
 function Brand() {
   return (
@@ -35,7 +36,7 @@ export function Navbar() {
 
   useEffect(() => {
     try {
-      const v = window.localStorage.getItem(ANNOUNCE_KEY)
+      const v = window.sessionStorage.getItem(ANNOUNCE_KEY)
       if (v === '1') setAnnounceOpen(false)
     } catch {
       // ignore
@@ -43,7 +44,21 @@ export function Navbar() {
   }, [])
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8)
+    const onScroll = () => {
+      const y = window.scrollY
+      setScrolled(y > 8)
+      if (y > ANNOUNCE_SCROLL_HIDE_Y) {
+        setAnnounceOpen(false)
+        try {
+          window.sessionStorage.setItem(ANNOUNCE_KEY, '1')
+        } catch {
+          // ignore
+        }
+      }
+      // #region agent log
+      fetch('http://127.0.0.1:7591/ingest/7e3fce9d-dd11-45ef-b44f-134e647a9542',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'80f449'},body:JSON.stringify({sessionId:'80f449',runId:'bar-debug',hypothesisId:'H_bar',location:'src/components/Navbar.tsx:onScroll',message:'scroll + announcement state',data:{y,scrolled:y>8,announceWillClose:y>ANNOUNCE_SCROLL_HIDE_Y},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -69,17 +84,17 @@ export function Navbar() {
             className="border-b border-white/10 bg-[linear-gradient(90deg,rgba(232,255,0,0.92),rgba(0,203,255,0.35))]"
           >
             <Container className="py-2">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                 <div className="flex min-w-0 items-center gap-2 text-xs font-semibold text-[rgb(10,10,12)] sm:text-sm">
                   <BadgePercent className="h-4 w-4 shrink-0" />
-                  <span className="truncate">
+                  <span className="line-clamp-2 sm:truncate">
                     Limited offer: 20% off Pro plan this week. New members only.
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2">
                   <NavLink
                     to="/pricing"
-                    className="inline-flex items-center gap-2 rounded-full bg-black/10 px-3 py-1 text-xs font-semibold text-[rgb(10,10,12)] ring-1 ring-black/10 transition hover:bg-black/15"
+                    className="inline-flex h-8 items-center gap-2 rounded-full bg-black/10 px-3 text-xs font-semibold text-[rgb(10,10,12)] ring-1 ring-black/10 transition hover:bg-black/15"
                   >
                     View plans <ArrowRight className="h-4 w-4" />
                   </NavLink>
@@ -90,7 +105,7 @@ export function Navbar() {
                     onClick={() => {
                       setAnnounceOpen(false)
                       try {
-                        window.localStorage.setItem(ANNOUNCE_KEY, '1')
+                        window.sessionStorage.setItem(ANNOUNCE_KEY, '1')
                       } catch {
                         // ignore
                       }
