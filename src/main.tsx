@@ -10,8 +10,9 @@ const p = params.get('p')
 if (p) {
   params.delete('p')
   const rest = params.toString()
-  const next = p + (rest ? (p.includes('?') ? '&' : '?') + rest : '')
-  window.history.replaceState(null, '', next)
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+  const nextPath = `${base}${p}` + (rest ? (p.includes('?') ? '&' : '?') + rest : '')
+  window.history.replaceState(null, '', nextPath)
 }
 
 createRoot(document.getElementById('root')!).render(
