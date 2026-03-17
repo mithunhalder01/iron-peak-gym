@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, Menu, PhoneCall, X } from 'lucide-react'
+import { ArrowRight, BadgePercent, Menu, PhoneCall, X } from 'lucide-react'
 import { navItems } from '../data/content'
 import { cn } from '../lib/cn'
 import { Container } from './Container'
 import { LinkButton } from './LinkButton'
+
+const ANNOUNCE_KEY = 'ironpeak:announceDismissed:v1'
 
 function Brand() {
   return (
@@ -25,10 +27,20 @@ export function Navbar() {
   const [open, setOpen] = useState(false)
   const location = useLocation()
   const [scrolled, setScrolled] = useState(false)
+  const [announceOpen, setAnnounceOpen] = useState(true)
 
   useEffect(() => {
     setOpen(false)
   }, [location.pathname])
+
+  useEffect(() => {
+    try {
+      const v = window.localStorage.getItem(ANNOUNCE_KEY)
+      if (v === '1') setAnnounceOpen(false)
+    } catch {
+      // ignore
+    }
+  }, [])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -47,6 +59,52 @@ export function Navbar() {
         scrolled ? 'bg-black/55' : 'bg-black/35',
       )}
     >
+      <AnimatePresence initial={false}>
+        {announceOpen ? (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="border-b border-white/10 bg-[linear-gradient(90deg,rgba(232,255,0,0.92),rgba(0,203,255,0.35))]"
+          >
+            <Container className="py-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2 text-xs font-semibold text-[rgb(10,10,12)] sm:text-sm">
+                  <BadgePercent className="h-4 w-4 shrink-0" />
+                  <span className="truncate">
+                    Limited offer: 20% off Pro plan this week. New members only.
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <NavLink
+                    to="/pricing"
+                    className="inline-flex items-center gap-2 rounded-full bg-black/10 px-3 py-1 text-xs font-semibold text-[rgb(10,10,12)] ring-1 ring-black/10 transition hover:bg-black/15"
+                  >
+                    View plans <ArrowRight className="h-4 w-4" />
+                  </NavLink>
+                  <button
+                    type="button"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-black/10 text-[rgb(10,10,12)] ring-1 ring-black/10 transition hover:bg-black/15"
+                    aria-label="Dismiss announcement"
+                    onClick={() => {
+                      setAnnounceOpen(false)
+                      try {
+                        window.localStorage.setItem(ANNOUNCE_KEY, '1')
+                      } catch {
+                        // ignore
+                      }
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </Container>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
       <Container className="py-3">
         <div className="flex items-center justify-between gap-4">
           <NavLink to="/" className="shrink-0">
