@@ -15,6 +15,29 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- #region agent log -->
+    <script>
+      fetch('http://127.0.0.1:7591/ingest/7e3fce9d-dd11-45ef-b44f-134e647a9542', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '80f449' },
+        body: JSON.stringify({
+          sessionId: '80f449',
+          runId: 'live-check',
+          hypothesisId: 'H1',
+          location: 'index.html:body',
+          message: 'Served HTML + script srcs',
+          data: {
+            href: window.location.href,
+            pathname: window.location.pathname,
+            scripts: Array.from(document.scripts)
+              .map((s) => s.getAttribute('src'))
+              .filter(Boolean),
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {})
+    </script>
+    <!-- #endregion -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
